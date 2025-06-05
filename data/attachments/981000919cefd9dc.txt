@@ -1,0 +1,80 @@
+Call FERME_TRACE From LECFIC
+Call OUVRE_TRACE("QLFCUC_SQL03") From LECFIC
+Call TESTSUITE()
+Call FERME_TRACE From LECFIC
+GTRACE = "QLFCUC_SQL03_"+GACTX.USER
+Call LEC_TRACE From LECFIC
+End
+# =================================================================================
+Funprog TESTSUITE()
+Call TESTSUITE_START("QLFCUC_SQL03", "QLFCUC_SQL03") From AXUNIT
+Call ADD_TESTCASE("GET_KEY_LOCALMENU","GET_KEY_LOCALMENU"-"APLSTD Filter where",1) From AXUNIT
+Call ADD_TESTCASE("GET_KEY_ADOVAL","GET_KEY_ADOVAL"-"ADOVAL Filter where",1) From AXUNIT
+Call ADD_TESTCASE("GET_KEY_APROCTEXTE","GET_KEY_APROCTEXTE"-"APROCTEXTE Filter where",1) From AXUNIT
+Local Clbfile  SUITE_RESULT
+SUITE_RESULT = func AXUNIT.RUN_TESTSUITE("Oracle SQL", "SQL03")
+End SUITE_RESULT
+# ================================================================================
+# ================================================================================
+Subprog CHECK_EQUAL(GOT, EXPECT)
+Call CHECK_EQUAL(GOT, EXPECT) From AXUNIT
+End
+Subprog CHECK_NOTEQUAL(GOT, EXPECT)
+Call CHECK_NOTEQUAL(GOT, EXPECT) From AXUNIT
+End
+# ==================================================
+# -  Tables and Sql functions
+# ==================================================
+Subprog GET_KEY_LOCALMENU()
+Local Integer WCPT, WKEY
+# errn=10
+# Errn  9 No current field  ERPAZC
+# Mask error on field ZC
+# Errn  10  Incompatible type ERMODE
+# LANCHP type MNL
+
+WKEY=0 : WCPT=0
+Local File APLSTD [ABREV]
+Filter [ABREV] Where (LANCHP<>0)
+WCPT = rowcount([ABREV])
+For [ABREV] : WKEY += 1 : Next
+Filter[ABREV] :
+LogicClose File [ABREV] :
+Call CHECK_EQUAL(WCPT,WKEY)
+End
+# ==================================================
+Subprog GET_KEY_ADOVAL()
+Local Integer WCPT, WKEY
+
+# errn=10
+# Errn  9 No current field  ERPAZC
+# Mask error on field ZC
+# Errn  10  Incompatible type ERMODE
+# LANCHP type MNL
+
+Local File ADOVAL [ABREV]
+WCPT=0 : WKEY=0
+Filter [ABREV] Where (CMP<>"" and FCY<>"" and PARAM<>"")
+WCPT = rowcount([ABREV])
+For [ABREV] : WKEY += 1 : Next
+Filter[ABREV] :
+LogicClose File [ABREV] :
+Call CHECK_EQUAL(WCPT,WKEY)
+End
+# ==================================================
+Subprog GET_KEY_APROCTEXTE()
+Local Integer WCPT, WKEY
+# errn=10
+# Errn  9 No current field  ERPAZC
+# Mask error on field ZC
+# Errn  10  Incompatible type ERMODE
+# LANCHP type MNL
+WCPT=0 : WKEY=0
+Local File APROCTEXTE [ABREV]
+Filter [ABREV] Where (CODPRO<>"" and CODLEG<>"" and LANG<>"" and UNIQIDP<>"")
+WCPT = rowcount([ABREV])
+For [ABREV] : WKEY += 1 :  Next
+Filter[ABREV] :
+LogicClose File [ABREV] :
+Call CHECK_EQUAL(WCPT,WKEY)
+End

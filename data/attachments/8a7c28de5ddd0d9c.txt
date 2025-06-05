@@ -1,0 +1,5 @@
+###############################################
+Local Integer TEST
+TEST = 'test'
+GERR = 1
+End

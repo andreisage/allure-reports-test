@@ -1,0 +1,200 @@
+Call OUVRE_TRACE("QLFCUC_SQL01") From LECFIC
+Call TESTSUITE()
+
+Call FERME_TRACE From LECFIC
+GTRACE = "QLFCUC_SQL01_"+GACTX.USER
+Call LEC_TRACE From LECFIC
+End
+
+Funprog TESTSUITE()
+Call TESTSUITE_START("QLFCUC_SQL01", "QLFCUC_SQL01") From AXUNIT
+Call ADD_TESTCASE("GET_ORDERBY_ASC","GET_ORDERBY_ASC"-"Order by Asc",4) From AXUNIT
+Call ADD_TESTCASE("GET_ORDERBY_DESC","GET_ORDERBY_DESC"-"Order by Desc",4) From AXUNIT
+Call ADD_TESTCASE("GET_ORDERBY_ASC_ASC","GET_ORDERBY_ASC_ASC"-"Order by Asc-Asc",5) From AXUNIT
+Call ADD_TESTCASE("GET_ORDERBY_DESC_DESC","GET_ORDERBY_DESC_DESC"-"Order by Desc-Desc",5) From AXUNIT
+Local Clbfile  SUITE_RESULT
+SUITE_RESULT = func AXUNIT.RUN_TESTSUITE("Oracle SQL", "SQL01")
+End SUITE_RESULT
+# ================================================================================
+# ================================================================================
+Subprog CHECK_EQUAL(GOT, EXPECT)
+Call CHECK_EQUAL(GOT, EXPECT) From AXUNIT
+End
+Subprog CHECK_NOTEQUAL(GOT, EXPECT)
+Call CHECK_NOTEQUAL(GOT, EXPECT) From AXUNIT
+End
+# ==================================================
+# -  Tables and Sql functions
+# ==================================================
+# ==================================================
+Funprog CREATE_TABLE_MEMORY(WFLAG)
+Value Integer WFLAG
+#-------------------------------------------
+Local Integer K,WW,J, WRET, WMAX, NBLU : WMAX=10:
+#If MYUUID=NullUuid : MYUUID=getUuid : Endif
+Local Char Z_SEAKEY(20)(1..WMAX)
+Local Char Z_YCODAG(20)(1..WMAX)
+Local Char Z_ITMREF(20)(1..WMAX)
+Local Decimal  Z_DECIMAL(1..WMAX)
+Local Double   Z_DOUBLE(1..WMAX)
+Local Integer  Z_INTEGER(1..WMAX)
+Local Date     Z_DATE(1..WMAX)
+Local Datetime Z_DATETIME(1..WMAX)
+Local Clbfile  Z_CLOB(1)(1..WMAX)
+Local Uuident  Z_UUID(1..WMAX)
+Local Date MY_DATE : MY_DATE=[04/05/2020]
+
+#--- Do not change these values ! --
+NBLU=WMAX : WW=0 : J=20 : WW=WMAX
+For K=1 To NBLU
+Z_SEAKEY(K)="SEAKEY"+num$(K)
+Z_YCODAG(K)="CODAG"+num$(K)
+Z_ITMREF(K)="ITMREF"+num$(K)
+Z_DECIMAL(K)= 30000.50+K
+Z_DOUBLE(K)= 50000.50-J
+Z_INTEGER(K)= 7100+K
+Z_DATE(K)= date$
+Z_DATETIME(K)=time$
+Z_UUID(K)=getUuid
+Z_CLOB(K)=num$(K)-"AAAA"-MY_DATE
+J+=20
+Next K
+# ==========Memory table create ===================
+If (WFLAG=1)
+Local File (Char SEAKEY(20),
+&           Char YCODAG(13),
+&           Char ITMREF(20),
+&           Decimal WDECIMAL,
+&           Double  WDOUBLE,
+&           Integer WCOUNT,
+&           Date     WDATE,
+&           Datetime WDTIME,
+&           Uuident WUUID,
+&           Clbfile WCLOB)
+& From Variable
+&           Z_SEAKEY(1..NBLU),
+&           Z_YCODAG(1..NBLU),
+&           Z_ITMREF(1..NBLU),
+&           Z_DECIMAL(1..NBLU),
+&           Z_DOUBLE(1..NBLU),
+&           Z_INTEGER(1..NBLU),
+&           Z_DATE(1..NBLU),
+&           Z_DATETIME(1..NBLU),
+&           Z_UUID(1..NBLU),
+&           Z_CLOB(1..NBLU)
+&  As [ZED_]
+&  Order By WDECIMAL Asc
+Endif
+If (WFLAG=2)
+Local File (Char SEAKEY(20),Char YCODAG(13),Char ITMREF(20),Decimal WDECIMAL,
+&           Double  WDOUBLE,
+&           Integer WCOUNT,
+&           Date     WDATE,
+&           Datetime WDTIME,
+&           Uuident WUUID,
+&           Clbfile WCLOB)
+& From Variable Z_SEAKEY(1..NBLU),Z_YCODAG(1..NBLU),Z_ITMREF(1..NBLU),
+&           Z_DECIMAL(1..NBLU),
+&           Z_DOUBLE(1..NBLU),
+&           Z_INTEGER(1..NBLU),
+&           Z_DATE(1..NBLU),
+&           Z_DATETIME(1..NBLU),
+&           Z_UUID(1..NBLU),
+&           Z_CLOB(1..NBLU)
+&  As [ZED_]
+&  Where (WCOUNT <= 7108) Order By WDECIMAL Desc
+Endif
+If (WFLAG=3)
+Local File (Char SEAKEY(20),Char YCODAG(13),Char ITMREF(20),Decimal WDECIMAL,
+&           Double  WDOUBLE,
+&           Integer WCOUNT,
+&           Date     WDATE,
+&           Datetime WDTIME,
+&           Uuident WUUID,
+&           Clbfile WCLOB)
+& From Variable Z_SEAKEY(1..NBLU),Z_YCODAG(1..NBLU),Z_ITMREF(1..NBLU),Z_DECIMAL(1..NBLU),
+&           Z_DOUBLE(1..NBLU),
+&           Z_INTEGER(1..NBLU),
+&           Z_DATE(1..NBLU),
+&           Z_DATETIME(1..NBLU),
+&           Z_UUID(1..NBLU),
+&           Z_CLOB(1..NBLU)
+&  As [ZED_]
+&  Where (WCOUNT>0) Order By WDECIMAL Asc;WDOUBLE Asc
+Endif
+If (WFLAG=4)
+Local File (Char SEAKEY(20),Char YCODAG(13),Char ITMREF(20),Decimal WDECIMAL,
+&           Double  WDOUBLE,
+&           Integer WCOUNT,
+&           Date     WDATE,
+&           Datetime WDTIME,
+&           Uuident WUUID,
+&           Clbfile WCLOB)
+& From Variable Z_SEAKEY(1..NBLU),Z_YCODAG(1..NBLU),Z_ITMREF(1..NBLU),Z_DECIMAL(1..NBLU),
+&           Z_DOUBLE(1..NBLU),
+&           Z_INTEGER(1..NBLU),
+&           Z_DATE(1..NBLU),
+&           Z_DATETIME(1..NBLU),
+&           Z_UUID(1..NBLU),
+&           Z_CLOB(1..NBLU)
+&  As [ZED_]
+&  Where (WCOUNT>0) Order By WDECIMAL Desc;WDOUBLE Desc
+Endif
+#===========
+For [ZED_]
+WRET+=1
+Case WRET
+When 8 :
+# Desc order check count 7101 decimal 30001.5  / Double 49980.5
+If (WFLAG=2)
+    Call CHECK_EQUAL(WCOUNT,7101)
+    Call CHECK_EQUAL(WDECIMAL,30001.5)
+    Call CHECK_EQUAL(WDOUBLE,49980.5)
+    WW=WRET : #counter
+Else :
+    WW=10
+Endif
+When 10 :
+Case WFLAG
+    When 1 :
+    # Count=7110  WDOUBLE=50001.5 Asc order
+    # 30010.5 Double=49800.5
+    Call CHECK_EQUAL(WCOUNT,7110)
+    Call CHECK_EQUAL(WDECIMAL,30010.5)
+    Call CHECK_EQUAL(WDOUBLE,49800.5)
+    When 3 :
+    # Asc check decimal 30010.5  / Double Double=49800.5
+    Call CHECK_EQUAL(WCOUNT,7110)
+    Call CHECK_EQUAL(WDECIMAL,30010.5)
+    Call CHECK_EQUAL(WDOUBLE,49800.5)
+    Call CHECK_EQUAL(WCLOB,"10 AAAA 20200504")
+    When 4 :
+    # Desc check decimal 30001.5  / Double 49980.5
+    Call CHECK_EQUAL(WCOUNT,7101)
+    Call CHECK_EQUAL(WDECIMAL,30001.5)
+    Call CHECK_EQUAL(WDOUBLE,49980.5)
+    Call CHECK_EQUAL(WCLOB,"1 AAAA 20200504")
+Endcase
+Endcase
+Next
+Filter [ZED_]
+LogicClose File [ZED_]
+Call CHECK_EQUAL(WRET,WW)
+End WRET
+# ================================
+Subprog GET_ORDERBY_ASC()
+Local Integer WRET
+WRET = func CREATE_TABLE_MEMORY(1)
+End
+Subprog GET_ORDERBY_DESC()
+Local Integer WRET
+WRET = func CREATE_TABLE_MEMORY(2)
+End
+Subprog GET_ORDERBY_ASC_ASC()
+Local Integer WRET
+WRET = func CREATE_TABLE_MEMORY(3)
+End
+Subprog GET_ORDERBY_DESC_DESC()
+Local Integer WRET
+WRET = func CREATE_TABLE_MEMORY(4)
+End

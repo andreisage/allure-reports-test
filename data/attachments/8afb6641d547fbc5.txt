@@ -1,0 +1,4 @@
+Hello all,
+Test modify file type RTF
+After modifying
+The type must stay RTF
