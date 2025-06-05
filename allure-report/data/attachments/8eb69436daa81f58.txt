@@ -1,0 +1,232 @@
+Call OUVRE_TRACE("QLFCUC_SQL02") From LECFIC
+Call TESTSUITE()
+
+Call FERME_TRACE From LECFIC
+GTRACE = "QLFCUC_SQL02_"+GACTX.USER
+Call LEC_TRACE From LECFIC
+End
+
+Funprog TESTSUITE()
+Call TESTSUITE_START("QLFCUC_SQL02", "QLFCUC_SQL02") From AXUNIT
+Call ADD_TESTCASE("CREATE_TABLE","CREATE_TABLE"-"Execsql create",1) From AXUNIT
+Call ADD_TESTCASE("INSERT_TABLE","INSERT_TABLE"-"Execsql insert",1) From AXUNIT
+Call ADD_TESTCASE("SELECT_TABLE","SELECT_TABLE"-"Execsql select",0) From AXUNIT
+Call ADD_TESTCASE("SELECT_TABLE_WHERE","SELECT_TABLE_WHERE"-"Execsql select where",0) From AXUNIT
+Call ADD_TESTCASE("SELECT_TABLE_ORDER_DESC","SELECT_TABLE_ORDER_DESC"-"Execsql where order Desc",0) From AXUNIT
+Call ADD_TESTCASE("SELECT_TABLE_ORDER_ASC","SELECT_TABLE_ORDER_ASC"-"Execsql where order Asc",0) From AXUNIT
+Call ADD_TESTCASE("DROP_TABLE","DROP_TABLE"-"Execsql drop",1) From AXUNIT
+Local Clbfile  SUITE_RESULT
+SUITE_RESULT = func AXUNIT.RUN_TESTSUITE("Oracle Execsql", "SQL02")
+End SUITE_RESULT
+# ================================================================================
+# ================================================================================
+Subprog CHECK_EQUAL(GOT, EXPECT)
+Call CHECK_EQUAL(GOT, EXPECT) From AXUNIT
+End
+Subprog CHECK_NOTEQUAL(GOT, EXPECT)
+Call CHECK_NOTEQUAL(GOT, EXPECT) From AXUNIT
+End
+# ==================================================
+# -  Tables and Sql functions
+# ==================================================
+# =====================
+# If an error occurred
+$SQL_ERROR
+WERROR = errn
+Resume
+#=====================
+$INIT_WERROR
+Integer WERROR : WERROR=0
+Onerrgo SQL_ERROR
+Return
+#====================================================
+#-- create table and Index name=code with
+#   colone name1 = tbl1col1
+#   colone name2 = ""
+# ===================================================
+# -- record number to create and Select count
+Funprog GET_NB_RECORD()
+End 100
+# =====================
+Subprog CREATE_TABLE()
+Local Integer WRET : WRET=0
+WRET=func CREATE_TABLE_TMP("ZQCPROC07X","CODE","TBL1COL1","")
+Call CHECK_EQUAL(WRET,1)
+End
+Subprog INSERT_TABLE()
+Local Integer WRET : WRET=0
+WRET=func INSERT_TABLE_TMP("ZQCPROC07X",func GET_NB_RECORD())
+Call CHECK_EQUAL(WRET,1)
+End
+Subprog SELECT_TABLE()
+Local Integer WNB,WRET : WRET=0
+WNB=func GET_NB_RECORD() : # --record number select expected
+WRET=func SELECT_TABLE_TMP("ZQCPROC07X")
+Call CHECK_EQUAL(WRET,WNB)
+End
+#=======================================
+Subprog SELECT_TABLE_WHERE()
+Local Integer WNB,WRET : WRET=0
+WNB=func GET_NB_RECORD()-50 : # --record number select expected
+WRET=func SELECT_TABLE_TMP_WHERE("ZQCPROC07X")
+Call CHECK_EQUAL(WRET,WNB)
+End
+#=======================================
+Subprog SELECT_TABLE_ORDER_DESC()
+Local Integer WNB,WRET : WRET=0
+WNB=func GET_NB_RECORD(): # --record number select expected
+WRET=func SELECT_TABLE_TMP_ORDER_DESC("ZQCPROC07X")
+Call CHECK_EQUAL(WRET,WNB)
+End
+#=======================================
+Subprog SELECT_TABLE_ORDER_ASC()
+Local Integer WNB,WRET : WRET=0
+WNB=func GET_NB_RECORD(): # --record number select expected
+WRET=func SELECT_TABLE_TMP_ORDER_ASC("ZQCPROC07X")
+Call CHECK_EQUAL(WRET,WNB)
+End
+#=======================================
+Subprog DROP_TABLE()
+Local Integer WRET : WRET=0
+WRET=func DROP_TABLE_TMP("ZQCPROC07X")
+Call CHECK_EQUAL(WRET,1)
+End
+#====================================================
+Funprog CREATE_TABLE_TMP(TNAME,INDNAME,INDCOL1,INDCOL2)
+Value Char    TNAME
+Value Char    INDNAME : # index name
+Value Char    INDCOL1 : #-- colum name 1 for index
+Value Char    INDCOL2 : #-- colum name 2 for index
+# --------------------------
+Local Integer WRET : WRET=0
+Local Char    WREQS(250)
+#Local File AQCPROC07A [A7A]
+#Local File AQCPROC07B [A7B]
+#Local File AQCPROC03 [APROC]
+#Local File AQCQRY02 [AQC2]
+#Local File AQCQRY06 [AQCQ]
+#  ZQCPROC07X
+WREQS="create table "+TNAME+"(TBL1COL1 varchar(20),TBL1COL2 varchar(20),"
+WREQS+="FIELD01 varchar(20),FIELD02 varchar(20),SEQ integer,CREUSR varchar(6),UPDUSR varchar(6))"
+#-- Handle error
+Gosub INIT_WERROR
+#CHJAB X3-322576 replace with GET_DATABASE_TYPE_FROM_CONTEXT()
+Execsql From func DB_CONFIG.GET_DATABASE_TYPE_FROM_CONTEXT() Sql WREQS
+If (WERROR=75) : # case where the table exists
+#CHJAB X3-322576 replace with GET_DATABASE_TYPE_FROM_CONTEXT()
+Execsql From func DB_CONFIG.GET_DATABASE_TYPE_FROM_CONTEXT() Sql "drop table "+TNAME
+Execsql From GET_DATABASE_TYPE_FROM_CONTEXTGET_DATABASE_TYPE_FROM_CONTEXT Sql WREQS
+Endif
+If (adxSqlRec=0) :
+#-- create index code
+Raz WREQS
+WREQS="create INDEX "+INDNAME+" ON "+TNAME
+If (INDCOL1<>"" and INDCOL2<>"")
+WREQS += "("+INDCOL1+","+INDCOL2+")"
+Else
+If (INDCOL1<>"")
+    WREQS += "("+INDCOL1+")"
+Endif
+Endif
+#CHJAB X3-322576 replace with GET_DATABASE_TYPE_FROM_CONTEXT()
+Execsql From func DB_CONFIG.GET_DATABASE_TYPE_FROM_CONTEXT() Sql WREQS
+#-- after create index adxSqlRec=0 = OK
+WRET=1
+Endif
+End WRET
+# ============================================
+Funprog INSERT_TABLE_TMP(TNAME,TNUMBER)
+Value Char    TNAME
+Value Integer TNUMBER
+# ----------------------------
+Local Integer JJ,K, WRET : WRET=0
+Local Char    WNAME(20)
+Local Char    WREQS(255), F1(20), F2(20)
+WNAME="QUNIT_" : K=100 :#-- indice for name
+For JJ=1 To TNUMBER
+F1="Field01"+num$(JJ) : F2="Field02"+num$(JJ)
+WREQS="insert into "+TNAME+" values("+"'"+WNAME+num$(K)+"',"+"'"+WNAME+num$(K)+"COL2"+"',"
+WREQS+="'"+F1+"','"+F2+"',"+num$(JJ)+",'"+"ADMIN"+"',"+"'"+"ADMIN"+"'"+")"
+K+=50
+#CHJAB X3-322576 replace with GET_DATABASE_TYPE_FROM_CONTEXT()
+Execsql From func DB_CONFIG.GET_DATABASE_TYPE_FROM_CONTEXT() Sql WREQS
+Raz WREQS
+Next
+#-- Insert Ok  adxSqlRec > 0
+WRET = adxSqlRec
+End WRET
+# =============================================
+# return number of record
+Funprog SELECT_TABLE_TMP(TNAME)
+Value Char    TNAME
+# ---------------------------
+Local Integer K,WRET : WRET=0
+Local Char    WREQS(250),WNAME(20)
+K=100
+WREQS="select TBL1COL1,TBL1COL2, SEQ From "+TNAME
+For (Char WCHAR1(20),Char WCHAR2(20),Integer WSEQ) From func DB_CONFIG.GET_DATABASE_TYPE_FROM_CONTEXT() Sql WREQS As [ZTU]
+WRET+=1
+Call CHECK_EQUAL(WRET,WSEQ)
+WNAME="QUNIT_"+num$(K)
+Call CHECK_EQUAL(WNAME,WCHAR1)
+K+=50
+Next
+End WRET
+# =============================
+Funprog SELECT_TABLE_TMP_WHERE(TNAME)
+Value Char    TNAME
+# ---------------------------
+Local Integer K,WRET : WRET=0
+Local Char    WREQS(250),WNAME(20)
+K=100
+WREQS="select TBL1COL1,TBL1COL2, SEQ From "+TNAME+" where SEQ <= 50"
+For (Char WCHAR1(20),Char WCHAR2(20),Integer WSEQ) From func DB_CONFIG.GET_DATABASE_TYPE_FROM_CONTEXT() Sql WREQS As [ZTU]
+WRET+=1
+Call CHECK_EQUAL(WRET,WSEQ) : #SEQ=50 => QUNIT_2550
+WNAME="QUNIT_"+num$(K)
+Call CHECK_EQUAL(WNAME,WCHAR1)
+K+=50
+Next
+# SEQ=100 = > QUNIT_5050
+End WRET
+# =========================================
+Funprog SELECT_TABLE_TMP_ORDER_DESC(TNAME)
+Value Char    TNAME
+# ---------------------------
+Local Integer K,WORDRE, WRET : WRET=0
+Local Char    WREQS(250),WNAME(20)
+K=5050 : WORDRE=100
+WREQS="select TBL1COL1,TBL1COL2, SEQ From "+TNAME+" where (SEQ > 0) Order by SEQ Desc"
+For (Char WCHAR1(20),Char WCHAR2(20),Integer WSEQ) From func DB_CONFIG.GET_DATABASE_TYPE_FROM_CONTEXT() Sql WREQS As [ZTU]
+WRET+=1
+Call CHECK_EQUAL(WORDRE,WSEQ) : WORDRE-=1
+WNAME="QUNIT_"+num$(K)
+Call CHECK_EQUAL(WNAME,WCHAR1)
+K -=50
+Next
+End WRET
+# =========================================
+Funprog SELECT_TABLE_TMP_ORDER_ASC(TNAME)
+Value Char    TNAME
+# ---------------------------
+Local Integer K,WRET : WRET=0
+Local Char    WREQS(250),WNAME(20)
+K=100
+WREQS="select TBL1COL1,TBL1COL2, SEQ From "+TNAME+" where (SEQ > 0) Order by SEQ Asc"
+For (Char WCHAR1(20),Char WCHAR2(20),Integer WSEQ) From func DB_CONFIG.GET_DATABASE_TYPE_FROM_CONTEXT() Sql WREQS As [ZTU]
+WRET+=1
+Call CHECK_EQUAL(WRET,WSEQ)
+WNAME="QUNIT_"+num$(K)
+Call CHECK_EQUAL(WNAME,WCHAR1)
+K +=50
+Next
+End WRET
+# =============================
+# - Return 1 Ok
+Funprog DROP_TABLE_TMP(TNAME)
+Value Char    TNAME
+# -------------------------------
+Local Integer WRET : WRET=0
+Execsql From func DB_CONFIG.GET_DATABASE_TYPE_FROM_CONTEXT() Sql "drop table "+TNAME
+If (adxSqlRec=0) : WRET=1 : Endif
+End WRET

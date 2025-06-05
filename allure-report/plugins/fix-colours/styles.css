@@ -1,0 +1,36 @@
+.chart__fill_status_failed {
+  fill: #ffd050
+}
+.chart__fill_status_broken {
+  fill: #fd5a3e
+}
+[dir] .bar__fill_status_failed {
+  background: #ffd050
+}
+[dir] .bar__fill_status_broken {
+  background: #fd5a3e
+}
+[dir] .label_status_failed {
+  background: #ffd050
+}
+[dir] .label_status_broken {
+  background: #fd5a3e
+}
+.text_status_failed {
+  color: #ffd050
+}
+.text_status_broken {
+  color: #fd5a3e
+}
+[dir] .y-label_status_failed {
+  background: #ffd050
+}
+[dir] .y-label_status_broken {
+  background: #fd5a3e
+}
+[dir] .status-details_status_failed {
+  background: #fffae6
+}
+[dir] .status-details_status_broken {
+  background: #ffe7e6
+}
