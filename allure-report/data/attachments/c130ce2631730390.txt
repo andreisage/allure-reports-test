@@ -1,7 +1,0 @@
-Worlfkow Cucumber test using GESTCY
-Country |[m]cry| Create/Modify by |GUSER| at |date$|:|time$|
-Currency |[f:tcy]cur|
-Creation |[f:tcy]credat|
-On folder |nomap(0)|
-Smtp host: sage-smtp.sagefr.adinternal.com
-Port 25

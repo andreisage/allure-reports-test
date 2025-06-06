@@ -1,1 +1,0 @@
-http://localhost:8124/api1/x3/erp/WHRBTRUN

@@ -1,3 +1,0 @@
-Hello all,
-Test creation with file type RTF
-The type must stay RTF type
